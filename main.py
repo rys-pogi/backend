@@ -52,3 +52,8 @@ def delete_appointment(appointment_id: str):
             del appointments[i]
             return {"detail": "Appointment deleted"}
     raise HTTPException(status_code=404, detail="Appointment not found")
+
+@app.get("/appointments/names")
+def list_appointment_names():
+    return [appt["name"] for appt in appointments]
+
