@@ -22,9 +22,16 @@ class Appointment(BaseModel):
 @app.post("/appointments")
 def create_appointment(appointment: Appointment):
     appointment.id = str(uuid.uuid4())
+
+    # Assign queue number as a 2-digit string starting from 01
+    queue_number = len(appointments) + 1
+    if queue_number > 99:
+        raise HTTPException(status_code=400, detail="Queue is full (max 99)")
+    appointment.queue_number = int(f"{queue_number:02}")
+
     appointments.append(appointment.dict())
     return {"msg": "Appointment created", "appointment": appointment}
-
+    
 @app.get("/appointments")
 def list_appointments():
     return appointments
