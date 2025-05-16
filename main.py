@@ -6,9 +6,12 @@ import uuid
 app = FastAPI()
 
 appointments: List[Dict] = []
+next_id = 1 
+
+
 
 class Appointment(BaseModel):
-    id: Optional[str] = None
+    id: Optional[int] = None  # Change from str to int if no longer using UUIDs
     title: str
     description: str
     date: str
@@ -17,13 +20,16 @@ class Appointment(BaseModel):
     name: str
     phone_number: str
     location: str
-    queue_number: int
+    queue_number: Optional[int] = None
+
 
 @app.post("/appointments")
 def create_appointment(appointment: Appointment):
     appointment.id = str(uuid.uuid4())
 
-    # Assign queue number as a 2-digit string starting from 01
+    appointment.id = str(next_id)  # Convert to string if model expects string
+    next_id += 1
+    
     queue_number = len(appointments) + 1
     if queue_number > 99:
         raise HTTPException(status_code=400, detail="Queue is full (max 99)")
@@ -31,6 +37,14 @@ def create_appointment(appointment: Appointment):
 
     appointments.append(appointment.dict())
     return {"msg": "Appointment created", "appointment": appointment}
+
+@app.get("/appointments/{appointment_id}", response_model=Appointment)
+def get_appointment(appointment_id: int):  # Now int
+    for appt in appointments:
+        if appt["id"] == appointment_id:
+            return appt
+    raise HTTPException(status_code=404, detail="Appointment not found")
+
     
 @app.get("/appointments")
 def list_appointments():
