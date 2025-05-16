@@ -25,18 +25,21 @@ class Appointment(BaseModel):
 
 @app.post("/appointments")
 def create_appointment(appointment: Appointment):
-    appointment.id = str(uuid.uuid4())
+    global next_id
 
-    appointment.id = str(next_id)  # Convert to string if model expects string
+    # Assign integer ID
+    appointment.id = next_id
     next_id += 1
-    
+
+    # Assign 2-digit queue number (max 99)
     queue_number = len(appointments) + 1
     if queue_number > 99:
         raise HTTPException(status_code=400, detail="Queue is full (max 99)")
-    appointment.queue_number = int(f"{queue_number:02}")
+    appointment.queue_number = queue_number
 
     appointments.append(appointment.dict())
     return {"msg": "Appointment created", "appointment": appointment}
+
 
 @app.get("/appointments/{appointment_id}", response_model=Appointment)
 def get_appointment(appointment_id: int):  # Now int
